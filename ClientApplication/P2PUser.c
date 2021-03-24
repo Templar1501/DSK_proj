@@ -8,9 +8,19 @@
 #include <signal.h>
 #include "P2PUser.h"
 
+//Zakończ działanie wątków
+void set_user_inactive(int sig) {
+    user_properties->is_active = false;
+}
+
+//Przypisanie obsługi SIGINT do zakończenia działania
+void set_sigint_handler(void) {
+    signal(SIGINT, set_user_inactive);
+}
+
 //Zwolenienie przydzielonych zasobów
 void release_resources(void) {  //TODO; Obsługa błedów
-    char sock_file[40];
+    char sock_file[20];
 
     sprintf(sock_file, "%d_listen", user_properties->process_id);
     free(user_properties);
@@ -24,29 +34,25 @@ void err_exit_parse(char *argv) {
 }
 
 //Wyjscie i komunikat błedu dla tworzenie wątków 
-void err_exit_thread(char *which) {
+void err_exit_thread(char *which, pthread_t thread_rx) {
+    if (thread_rx != NULL) {
+        set_user_inactive(0);
+        pthread_join(thread_rx, NULL);
+    }
+
     printf("Can not run %s thread!\n", which);
     release_resources();
     exit(-1);
 }
 
-//Zakońćz działanie wątków
-void set_user_inactive(int sig) {
-    user_properties->is_active = false;
-}
-
-//Przypisanie obsługi SIGINT do zakończenia działania
-void set_sigint_handler(void) {
-    signal(SIGINT, set_user_inactive);
-}
-
+//Podstawowa operacja na sockecie 
 void common_un_sock_operation(struct sockaddr_un *un_socket, int *un_socket_fd, pid_t process_to_connect_id) {
     *un_socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (*un_socket_fd == -1) return;
 
     memset(un_socket, 0, sizeof(struct sockaddr_un));
-    un_socket->sun_family = AF_UNIX;
     sprintf(un_socket->sun_path, "%d_listen", process_to_connect_id);
+    un_socket->sun_family = AF_UNIX;
 }
 
 //Stworzenie socketu dla odbierania informacji
@@ -101,6 +107,7 @@ void *rx(void *arg) {
 
     while (user_properties->is_active) {
         un_socket_fd = set_in_data_socket();
+        
         if (un_socket_fd == -1) sleep(1);
         else {
 
@@ -131,20 +138,16 @@ void main_work(void) {
     int         err;
     
     err = pthread_create(&thread_rx, NULL, &rx, NULL);
-    if (err) err_exit_thread("rx");
+    if (err) err_exit_thread("rx", NULL);
 
     err = pthread_create(&thread_tx, NULL, &tx, NULL);
-    if (err) {
-        set_user_inactive(0);
-        pthread_join(thread_rx, NULL);
-        err_exit_thread("tx");
-    }
-
+    if (err) err_exit_thread("tx", thread_rx);
+    
     pthread_join(thread_tx, NULL);
     pthread_join(thread_rx, NULL);
 }
 
-//Parsowanie argumentów wejsciowcyh, tzn. dobór loginu
+//Parsowanie argumentów wejsciowcyh
 void parse_args(int argc, char **argv) {
     if (argc != 2) err_exit_parse(argv[0]);
     n_size = strtoul(argv[1], NULL, 10);
