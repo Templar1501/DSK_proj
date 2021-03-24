@@ -30,6 +30,17 @@ void set_in_data_socket() {
 
 }
 
+//Obsługa głownej funkcjonalności programu
+void main_work() {
+
+}
+
+//Zwolenienie przydzielonych zasobów
+void clen_up() {
+
+}
+
+//Parsowanie argumentów wejsciowcyh, tzn. dobór loginu
 void parse_args(int argc, char **argv, P2PUser *user_properties) {
     size_t user_name_len;
 
@@ -39,14 +50,13 @@ void parse_args(int argc, char **argv, P2PUser *user_properties) {
     }
 
     user_name_len = strlen(argv[1]);
-    printf("%d\n", user_name_len);
     if (user_name_len > USER_NAME_LEN - 1) {
         printf("Usage: %s <name>\n", argv[0]);
         exit(-1);
     }
 
-    strncpy(user_properties->name, argv[1], user_name_len - 1);
-    user_properties->name[user_name_len - 1] = '\0';
+    strncpy(user_properties->name, argv[1], user_name_len);
+    user_properties->name[user_name_len] = '\0';
 }
 
 int main(int argc, char **argv) {
