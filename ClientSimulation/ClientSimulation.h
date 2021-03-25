@@ -1,3 +1,10 @@
+#include <stdbool.h>
 
+typedef struct ClientSimulation {
+    long                vector_size;
+    pthread_barrier_t   pass_data_mutex;
+} ClientThreadArg;
 
-void *worker_thread_work(void *arg);
+bool global_work_flag;
+
+void *worker_thread_work(void *client_thread_arg);
