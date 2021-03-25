@@ -37,7 +37,7 @@ void err_exit_parse(char *argv) {
 //Wyjscie i komunikat błedu dla tworzenie wątków 
 void err_exit_thread(char *which, pthread_t thread_rx) {
     if (thread_rx != (pthread_t)NULL) {
-        set_user_inactive(0);
+        set_user_inactive((int)NULL);
         pthread_join(thread_rx, NULL);
     }
 
@@ -66,15 +66,6 @@ int set_in_data_socket(void) {
         printf("Can not create socket!\n");
         return -1;
     }
-
-    /*
-    err = unlink(un_socket.sun_path);
-    if (err == -1) {
-        #include <errno.h>
-        printf("%s\n", strerror(errno));
-        printf("Can not unlink!\n");
-        return -1;
-    }*/
 
     err = bind(un_socket_fd, (struct sockaddr*)&un_socket, sizeof(struct sockaddr_un));
     if (err == -1) {
@@ -118,13 +109,12 @@ void *rx(void *arg) {
 
     un_socket_fd = set_in_data_socket();
     if (un_socket_fd == -1) {
-        set_user_inactive(0);
+        set_user_inactive((int)NULL);
         pthread_exit((void *)-1);
     }
     
     while (user_properties->is_active) {
         err = connect(un_socket_fd, (struct sockaddr *)&foregin_cli_addr, sizeof(struct sockaddr_un));
-
         
         if (err == -1) sleep(1);
         else {
