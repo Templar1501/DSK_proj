@@ -19,12 +19,13 @@ void set_sigint_handler(void) {
 }
 
 //Zwolenienie przydzielonych zasobów
-void release_resources(void) {  //TODO; Obsługa błedów
+void release_resources(void) { 
     char sock_file[20];
 
     sprintf(sock_file, "%d_listen", user_properties->process_id);
     free(user_properties);
-    unlink(sock_file);
+    unlink(sock_file); //TODO: przyjrzec sie
+    printf("Finishing, client id: %d\n", user_properties->process_id);
 }
 
 //Wyjscie z błedem przy parsowaniu argumentów wejsciowych
@@ -35,7 +36,7 @@ void err_exit_parse(char *argv) {
 
 //Wyjscie i komunikat błedu dla tworzenie wątków 
 void err_exit_thread(char *which, pthread_t thread_rx) {
-    if (thread_rx != NULL) {
+    if (thread_rx != (pthread_t)NULL) {
         set_user_inactive(0);
         pthread_join(thread_rx, NULL);
     }
@@ -65,6 +66,15 @@ int set_in_data_socket(void) {
         printf("Can not create socket!\n");
         return -1;
     }
+
+    /*
+    err = unlink(un_socket.sun_path);
+    if (err == -1) {
+        #include <errno.h>
+        printf("%s\n", strerror(errno));
+        printf("Can not unlink!\n");
+        return -1;
+    }*/
 
     err = bind(un_socket_fd, (struct sockaddr*)&un_socket, sizeof(struct sockaddr_un));
     if (err == -1) {
@@ -103,17 +113,26 @@ int set_out_data_socket(pid_t process_to_connect_id) {
 
 //Odbieranie danych
 void *rx(void *arg) {
-    int un_socket_fd;
+    struct sockaddr_un  foregin_cli_addr;
+    int                 un_socket_fd, err;
 
+    un_socket_fd = set_in_data_socket();
+    if (un_socket_fd == -1) {
+        set_user_inactive(0);
+        pthread_exit((void *)-1);
+    }
+    
     while (user_properties->is_active) {
-        un_socket_fd = set_in_data_socket();
-        
-        if (un_socket_fd == -1) sleep(1);
-        else {
+        err = connect(un_socket_fd, (struct sockaddr *)&foregin_cli_addr, sizeof(struct sockaddr_un));
 
+        
+        if (err == -1) sleep(1);
+        else {
+            
         }
     }
 
+    close(un_socket_fd);
     pthread_exit(0);
 }
 
@@ -138,7 +157,7 @@ void main_work(void) {
     int         err;
     
     err = pthread_create(&thread_rx, NULL, &rx, NULL);
-    if (err) err_exit_thread("rx", NULL);
+    if (err) err_exit_thread("rx", (pthread_t)NULL);
 
     err = pthread_create(&thread_tx, NULL, &tx, NULL);
     if (err) err_exit_thread("tx", thread_rx);
@@ -172,7 +191,7 @@ void fill_P2PUser_struct(void) {
     user_properties->is_active = true;
     user_properties->trust_level = 0; //TODO: przemyslec
     user_properties->cash_amount = 200; //TODO: dac random
-    printf("Client id: %d\n", user_properties->process_id);
+    printf("Initializing, client id: %d\n", user_properties->process_id);
     printf("Listening socket: %d_listen\n", user_properties->process_id);
 }
 
