@@ -5,20 +5,20 @@
 #include "../ClientSimulation/ClientSimulation.h"
 
 void err_exit_from_parse_args(char **argv){
-    printf("Usage: %s [thread_number > 1]\n", argv[0]);
+    printf("Usage: %s [thread_amount > 1]\n", argv[0]);
     exit(-1);
 }
 
-void parse_args(int argc, char **argv, long *thread_number) {
+void parse_args(int argc, char **argv, long *thread_amount) {
     if (argc != 2) err_exit_from_parse_args(argv);
-    *thread_number = strtol(argv[1], NULL, 10);
-    if (*thread_number < 2) err_exit_from_parse_args(argv);
+    *thread_amount = strtol(argv[1], NULL, 10);
+    if (*thread_amount < 2) err_exit_from_parse_args(argv);
 }
 
-void set_data_in_struct(ClientThreadCommon *client_thread_common, bool *entrances, long *numbers,long thread_amount) {
-    client_thread_common->vector_size = thread_amount;
+void set_data_in_struct(ClientThreadCommon *client_thread_common, bool *entrances, long *lp_vector,long thread_amount) {
+    client_thread_common->thread_amount = thread_amount;
     client_thread_common->entrances = entrances;
-    client_thread_common->numbers = numbers;
+    client_thread_common->lp_vector = lp_vector;
 }
 
 void init_exclude_system(ClientThreadArg *client_properties, long thread_amount) {//todo: handle errors
@@ -48,13 +48,13 @@ void finish_exclude_system(ClientThreadArg *client_properties) {//todo: handle e
     err = sem_destroy(&client_properties->pass_index_sem);
 }
 
-void init_clients(pthread_t *threads_id, bool *entrances, long *numbers,long thread_amount) { //todo: handle errors
+void init_clients(pthread_t *threads_id, bool *entrances, long *lp_vector,long thread_amount) { //todo: handle errors
     ClientThreadArg     client_properties;
     long                index;
     int                 err;
 
     global_work_flag = true;
-    set_data_in_struct(&client_properties.client_thread_common, entrances, numbers, thread_amount);
+    set_data_in_struct(&client_properties.client_thread_common, entrances, lp_vector, thread_amount);
     init_exclude_system(&client_properties, thread_amount);
     
     //spawn_clients
@@ -67,10 +67,10 @@ void init_clients(pthread_t *threads_id, bool *entrances, long *numbers,long thr
     finish_exclude_system(&client_properties);
 }
 
-void wait_for_clients(pthread_t *threads_id, long thread_number) {
+void wait_for_clients(pthread_t *threads_id, long thread_amount) {
     long index;
 
-    for (index = 0; index < thread_number; index++) pthread_join(threads_id[index], NULL);
+    for (index = 0; index < thread_amount; index++) pthread_join(threads_id[index], NULL);
 }
 
 void signal_handler(int signal) {
@@ -81,33 +81,33 @@ void enable_sigint(void) {
     signal(SIGINT, signal_handler);
 }
 
-void alloc_threads_id(pthread_t **threads_id, bool **entrances, long **numbers,long thread_number) {
-    *threads_id = malloc(sizeof(long) * thread_number);
-    *entrances = calloc(thread_number, sizeof(bool));
-    *numbers = calloc(thread_number, sizeof(long));
-    if (*threads_id == NULL || *entrances == NULL || *numbers == NULL) {
+void alloc_env_mem(pthread_t **threads_id, bool **entrances, long **lp_vector, long thread_amount) {
+    *threads_id = malloc(sizeof(long) * thread_amount);
+    *entrances = calloc(thread_amount, sizeof(bool));
+    *lp_vector = calloc(thread_amount, sizeof(long));
+    if (*threads_id == NULL || *entrances == NULL || *lp_vector == NULL) {
         printf("Can not allocate memmory!\n");
         exit(-1);
     }
 }
 
-void free_threads_id(pthread_t *threads_id, bool *entrances, long *numbers) {
+void free_env_mem(pthread_t *threads_id, bool *entrances, long *lp_vector) {
     free(threads_id);
     free(entrances);
-    free(numbers);
+    free(lp_vector);
 }
 
 int main(int argc, char **argv) {
-    long        thread_number, *numbers;
+    long        thread_amount, *lp_vector;
     pthread_t   *threads_id;
     bool        *entrances;
 
-    parse_args(argc, argv, &thread_number);
+    parse_args(argc, argv, &thread_amount);
     enable_sigint();
-    alloc_threads_id(&threads_id, &entrances, &numbers,thread_number);
-    init_clients(threads_id, entrances, numbers, thread_number);
-    wait_for_clients(threads_id, thread_number);
-    free_threads_id(threads_id, entrances, numbers);
+    alloc_env_mem(&threads_id, &entrances, &lp_vector, thread_amount);
+    init_clients(threads_id, entrances, lp_vector, thread_amount);
+    wait_for_clients(threads_id, thread_amount);
+    free_env_mem(threads_id, entrances, lp_vector);
 
     return 0;
 }
