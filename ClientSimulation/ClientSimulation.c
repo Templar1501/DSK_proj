@@ -2,46 +2,32 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ClientSimulation.h"
+#include <memory.h>
+#include <time.h>
+#include "../LamportAlgorithm/LamportAlgorithm.h"
 
-void copy_data_to_thread(ClientThreadArg *client_thread_arg, long *vector_size, pthread_t *thread_id) { //todo: handle errors
+void copy_data_to_thread(ClientThreadArg *c_t_a, ClientThreadProperties *c_t_p) { //todo: handle errors
     int err;
 
-    *vector_size = client_thread_arg->vector_size;
-    err = pthread_barrier_wait(&client_thread_arg->pass_data_mutex);
-    *thread_id = pthread_self();
+    c_t_p->client_thread_common.thread_index = c_t_a->client_thread_common.thread_index;
+    err = sem_post(&c_t_a->pass_index_sem);
+    c_t_p->client_thread_common.vector_size = c_t_a->client_thread_common.vector_size;
+    c_t_p->client_thread_common.entrances = c_t_a->client_thread_common.entrances;
+    c_t_p->client_thread_common.numbers = c_t_a->client_thread_common.numbers;
+    c_t_p->thread_id = pthread_self();
 }
 
-void start_prompt(pthread_t thread_id) {
-    printf("Thread no.%lu started work\n", thread_id);
-}
+void wait_for_all_clients(ClientThreadArg *client_thread_arg) {  //todo: handle errors
+    int err;
 
-void end_prompt(pthread_t thread_id) {
-    printf("Thread no.%lu finished work\n", thread_id);
-}
-
-void alloc_vector(long **vector, long vector_size, pthread_t thread_id) {
-    *vector = calloc(vector_size, sizeof(long));
-    if (*vector == NULL) {
-        printf("Thread no.%lu can not allocate memmory\n", thread_id);
-        pthread_exit((void *)-1);
-    }
-}
-
-void thread_work() {
-    sleep(3);
+    err = pthread_barrier_wait(&client_thread_arg->pass_data_barrier);
 }
 
 void *worker_thread_work(void *client_thread_arg) {
-    pthread_t   thread_id;
-    long        vector_size, *vector;
+    ClientThreadProperties client_thread_prop;
 
-    copy_data_to_thread(client_thread_arg, &vector_size, &thread_id);
-    start_prompt(thread_id);
-    alloc_vector(&vector, vector_size, thread_id);
-    thread_work();
- 
-    free(vector);
-    end_prompt(thread_id);
+    copy_data_to_thread(client_thread_arg, &client_thread_prop);   
+    wait_for_all_clients(client_thread_arg);
+    lamport_exclusive(&client_thread_prop);
     pthread_exit(0);
 }
