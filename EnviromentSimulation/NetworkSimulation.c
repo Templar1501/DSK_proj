@@ -35,7 +35,7 @@ void spawn_clients(ClientThreadArg *client_properties, pthread_t *threads_id, lo
     for (index = 0; index < thread_amount; index++) {
         err = sem_wait(&client_properties->pass_index_sem);
         client_properties->client_thread_common.thread_index = index;
-        pthread_create(&threads_id[index], NULL, &worker_thread_work, &client_properties);
+        pthread_create(&threads_id[index], NULL, &worker_thread_work, client_properties);
     }
 }
 
@@ -56,14 +56,7 @@ void init_clients(pthread_t *threads_id, bool *entrances, long *lp_vector,long t
     global_work_flag = true;
     set_data_in_struct(&client_properties.client_thread_common, entrances, lp_vector, thread_amount);
     init_exclude_system(&client_properties, thread_amount);
-    
-    //spawn_clients
-    for (index = 0; index < thread_amount; index++) {
-        err = sem_wait(&client_properties.pass_index_sem);
-        client_properties.client_thread_common.thread_index = index;
-        pthread_create(&threads_id[index], NULL, &worker_thread_work, &client_properties);
-    }
-
+    spawn_clients(&client_properties, threads_id, thread_amount);
     finish_exclude_system(&client_properties);
 }
 

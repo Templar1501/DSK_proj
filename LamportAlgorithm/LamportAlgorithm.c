@@ -42,22 +42,18 @@ static inline void print_prompt(long current_thread_index, const char *prompt) {
     printf("Thread no.%lu %s (%lu)\n", current_thread_index, prompt,time(NULL));
 }
 
-void set_variables(long *current_thread_index, long *thread_amount, long *lp_vector, bool *entrances, ClientThreadCommon *c_l_p) { //fixme: cause errors
+void set_variables(long *current_thread_index, long *thread_amount, long **lp_vector, bool **entrances, ClientThreadCommon *c_l_p) { 
     *current_thread_index = c_l_p->thread_index;
     *thread_amount = c_l_p->thread_amount;
-    lp_vector = c_l_p->lp_vector;
-    entrances = c_l_p->entrances;
+    *lp_vector = c_l_p->lp_vector;
+    *entrances = c_l_p->entrances;
 }
 
 void lamport_exclusive(ClientThreadCommon *c_l_p) {
     long        current_thread_index, thread_amount, *lp_vector;
     bool        *entrances;
 
-    //set_variables(&th_index, &thread_amount, numbers,entrances, c_l_p);
-    current_thread_index = c_l_p->thread_index;
-    lp_vector = c_l_p->lp_vector;
-    entrances = c_l_p->entrances;
-    thread_amount = c_l_p->thread_amount;
+    set_variables(&current_thread_index, &thread_amount, &lp_vector, &entrances, c_l_p);
     print_prompt(current_thread_index, "stared work");
 
     while(global_work_flag) {
