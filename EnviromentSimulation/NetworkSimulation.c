@@ -28,7 +28,7 @@ void init_exclude_system(ClientThreadArg *client_properties, long thread_amount)
     err = sem_init(&client_properties->pass_index_sem, 0, 1);
 }
 
-void spawn_clients(ClientThreadArg *client_properties, pthread_t *threads_id, long thread_amount) { //fixme: cause error
+void spawn_clients(ClientThreadArg *client_properties, pthread_t *threads_id, long thread_amount) { 
     long    index;
     int     err;
 

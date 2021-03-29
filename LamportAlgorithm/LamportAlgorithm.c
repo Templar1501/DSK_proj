@@ -60,7 +60,10 @@ void lamport_exclusive(ClientThreadCommon *c_l_p) {
         print_prompt(current_thread_index, "in non critical section");
         lamport_lock(current_thread_index, thread_amount, entrances, lp_vector);
         print_prompt(current_thread_index, "entering critical section");
+
+        //Insert bate's algorithm
         sleep(1);
+
         print_prompt(current_thread_index, "exiting critical section");
         lamport_unlock(current_thread_index, lp_vector);
     }
