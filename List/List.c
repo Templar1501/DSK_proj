@@ -5,6 +5,17 @@
 node_t * head = NULL; 
 unsigned long ans;
 
+FILE *open_file(){
+    const char filename[] = "1000.txt";
+    FILE *file = fopen(filename, "r");
+
+    return file;
+}
+
+void close_file(FILE * file){
+    fclose(file);
+}
+
 void add_element(unsigned long riddle, unsigned long answer){
     node_t * temp;
     node_t * ptr;
@@ -48,38 +59,44 @@ void print_list() {
 unsigned long get_answer(int i){
     unsigned long val;
     node_t * ptr;
+
     ptr=head;
+
     for(int j=1;j<i;j++){
         ptr=ptr->next;
     }
+
     val = ptr->answer % 10;
-    printf("Elem mod 10 = %lu\nElem = %lu\n", val, ptr->answer);
+    
     return val;
 }
 
-void read_from_file(node_t * head){
-    const char filename[] = "1000.txt";
+void read_from_file(FILE * file, unsigned int * counter){
+    unsigned long riddle, answer;
 
-    unsigned long a, c;
-    char b;
+    fscanf(file, "%lu, %lu", &riddle,&answer);
+    add_element(riddle,answer);
 
-    FILE *file = fopen(filename, "r");
-    while (EOF != fscanf(file, "%lu %c %lu", &a,&b,&c)){
-        add_element(a,c);
-    }
-
-    fclose(file);
+    (*counter)++;
 }
 
 int main(){
-    read_from_file(head);
+    FILE *file = open_file();
+    unsigned int counter = 0;
+    read_from_file(file, &counter);
+    read_from_file(file, &counter);
+    read_from_file(file, &counter);
 
     print_list();
 
+    printf("Counter = %d\n", counter);
+
     ans = get_answer(2);
-    printf("%lu",ans);
+    printf("Answer mod 10 = %lu\n",ans);
 
     delete_list();
+
+    close_file(file);
 
     return 0;
 }
