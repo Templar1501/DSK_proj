@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-node_t * head = NULL; 
+blockchain_element * head = NULL; 
 unsigned long ans;
 
 typedef struct node {
     unsigned long riddle;
     unsigned long answer;
     unsigned long client_id;
+    unsigned long clients_votted;
+    bool approved;
     struct node * next;
-} node_t;
+} blockchain_element;
 
 FILE *open_file();
 void close_file(FILE * file);

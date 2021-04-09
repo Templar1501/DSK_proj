@@ -1,4 +1,4 @@
-#include "List.h"
+#include "Blockchain.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -14,9 +14,9 @@ void close_file(FILE * file){
 }
 
 void add_element(unsigned long riddle, unsigned long answer){
-    node_t * temp;
-    node_t * ptr;
-    temp = (node_t *) malloc(sizeof(node_t));
+    blockchain_element * temp;
+    blockchain_element * ptr;
+    temp = (blockchain_element *) malloc(sizeof(blockchain_element));
 
     temp->riddle = riddle;
     temp->answer = answer;
@@ -34,8 +34,8 @@ void add_element(unsigned long riddle, unsigned long answer){
 }
 
 void delete_list(){
-    node_t * tmp;
-    tmp = (node_t *) malloc(sizeof(node_t));
+    blockchain_element * tmp;
+    tmp = (blockchain_element *) malloc(sizeof(blockchain_element));
     while(head != NULL){
         tmp = head;
         head = head->next;
@@ -45,7 +45,7 @@ void delete_list(){
 }
 
 void print_list() {
-    node_t * current = head;
+    blockchain_element * current = head;
 
     while (current != NULL) {
         printf("riddle = %ld, answer = %ld\n", current->riddle, current->answer);
@@ -55,7 +55,7 @@ void print_list() {
 
 unsigned long get_answer(int i){
     unsigned long val;
-    node_t * ptr;
+    blockchain_element * ptr;
 
     ptr=head;
 
