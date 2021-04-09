@@ -3,7 +3,9 @@
 
 typedef struct ClientSimulationCommon {
     long    thread_amount, *lp_vector, thread_index;
-    bool    *entrances;
+    bool    *entrances, *queue;
+    char     *flag;
+    
 } ClientThreadCommon;
 
 typedef struct ClientSimulation {

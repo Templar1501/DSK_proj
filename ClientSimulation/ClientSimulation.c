@@ -10,10 +10,13 @@ void copy_data_to_thread(ClientThreadArg *c_t_a, ClientThreadCommon *c_t_c) { //
     int err;
 
     c_t_c->thread_index = c_t_a->client_thread_common.thread_index;
-    err = sem_post(&c_t_a->pass_index_sem);
     c_t_c->thread_amount = c_t_a->client_thread_common.thread_amount;
     c_t_c->entrances = c_t_a->client_thread_common.entrances;
     c_t_c->lp_vector = c_t_a->client_thread_common.lp_vector;
+
+    c_t_c->queue = c_t_a->client_thread_common.queue;
+    c_t_c->flag = c_t_a->client_thread_common.flag;
+    err = sem_post(&c_t_a->pass_index_sem);
 }
 
 void wait_for_all_clients(ClientThreadArg *c_t_a) {  //todo: handle errors

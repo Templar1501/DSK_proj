@@ -15,10 +15,12 @@ void parse_args(int argc, char **argv, long *thread_amount) {
     if (*thread_amount < 2) err_exit_from_parse_args(argv);
 }
 
-void set_data_in_struct(ClientThreadCommon *client_thread_common, bool *entrances, long *lp_vector,long thread_amount) {
+void set_data_in_struct(ClientThreadCommon *client_thread_common, bool *entrances, long *lp_vector,long thread_amount, bool *queue, char *flag) {
     client_thread_common->thread_amount = thread_amount;
     client_thread_common->entrances = entrances;
     client_thread_common->lp_vector = lp_vector;
+    client_thread_common->queue = queue;
+    client_thread_common->flag = flag;
 }
 
 void init_exclude_system(ClientThreadArg *client_properties, long thread_amount) {//todo: handle errors
@@ -48,13 +50,13 @@ void finish_exclude_system(ClientThreadArg *client_properties) {//todo: handle e
     err = sem_destroy(&client_properties->pass_index_sem);
 }
 
-void init_clients(pthread_t *threads_id, bool *entrances, long *lp_vector,long thread_amount) { //todo: handle errors
+void init_clients(pthread_t *threads_id, bool *entrances, long *lp_vector,long thread_amount, bool *queue, char *flag) { //todo: handle errors
     ClientThreadArg     client_properties;
     long                index;
     int                 err;
 
     global_work_flag = true;
-    set_data_in_struct(&client_properties.client_thread_common, entrances, lp_vector, thread_amount);
+    set_data_in_struct(&client_properties.client_thread_common, entrances, lp_vector, thread_amount, queue, flag);
     init_exclude_system(&client_properties, thread_amount);
     spawn_clients(&client_properties, threads_id, thread_amount);
     finish_exclude_system(&client_properties);
@@ -74,33 +76,38 @@ void enable_sigint(void) {
     signal(SIGINT, signal_handler);
 }
 
-void alloc_env_mem(pthread_t **threads_id, bool **entrances, long **lp_vector, long thread_amount) {
+void alloc_env_mem(pthread_t **threads_id, bool **entrances, long **lp_vector, long thread_amount, bool **queue, char **flag) {
     *threads_id = malloc(sizeof(long) * thread_amount);
     *entrances = calloc(thread_amount, sizeof(bool));
     *lp_vector = calloc(thread_amount, sizeof(long));
-    if (*threads_id == NULL || *entrances == NULL || *lp_vector == NULL) {
+    *queue = calloc(thread_amount, sizeof(bool));
+    *flag = calloc(1, sizeof(char));
+    if (*threads_id == NULL || *entrances == NULL || *lp_vector == NULL || *queue == NULL || *flag == NULL ) { 
         printf("Can not allocate memmory!\n");
         exit(-1);
     }
 }
 
-void free_env_mem(pthread_t *threads_id, bool *entrances, long *lp_vector) {
+void free_env_mem(pthread_t *threads_id, bool *entrances, long *lp_vector, bool *queue, char *flag) {
     free(threads_id);
     free(entrances);
     free(lp_vector);
+    free(queue);
+    free(flag);
 }
 
 int main(int argc, char **argv) {
+    char        *flag;
     long        thread_amount, *lp_vector;
     pthread_t   *threads_id;
-    bool        *entrances;
+    bool        *entrances, *queue;
 
     parse_args(argc, argv, &thread_amount);
     enable_sigint();
-    alloc_env_mem(&threads_id, &entrances, &lp_vector, thread_amount);
-    init_clients(threads_id, entrances, lp_vector, thread_amount);
+    alloc_env_mem(&threads_id, &entrances, &lp_vector, thread_amount, &queue, &flag);
+    init_clients(threads_id, entrances, lp_vector, thread_amount, queue, flag);
     wait_for_clients(threads_id, thread_amount);
-    free_env_mem(threads_id, entrances, lp_vector);
+    free_env_mem(threads_id, entrances, lp_vector, queue, flag);
 
     return 0;
 }
