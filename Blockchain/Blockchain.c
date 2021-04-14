@@ -14,8 +14,8 @@ void close_file(FILE * file){
 }
 
 void add_element(unsigned long riddle, unsigned long answer){
-    blockchain_element * temp;
-    blockchain_element * ptr;
+    blockchain_element *temp, *ptr;
+
     temp = (blockchain_element *) malloc(sizeof(blockchain_element));
 
     temp->riddle = riddle;
@@ -25,31 +25,37 @@ void add_element(unsigned long riddle, unsigned long answer){
     if(head == NULL){
         head = temp;
     }else{
-        ptr = head;
-        while(ptr->next!=NULL){
-            ptr=ptr->next;
-        }
+        for(ptr = head;ptr!=NULL;)ptr = ptr->next;
         ptr->next = temp;
     }
 }
 
 void delete_list(){
     blockchain_element * tmp;
-    tmp = (blockchain_element *) malloc(sizeof(blockchain_element));
-    while(head != NULL){
+    
+    // while(head != NULL){
+    //     tmp = head;
+    //     head = head->next;
+    //     free(tmp);
+    // }
+
+    for(;head!=NULL;head=head->next){
         tmp = head;
-        head = head->next;
         free(tmp);
     }
     printf("Deleted\n");
 }
 
 void print_list() {
-    blockchain_element * current = head;
+    blockchain_element *current;
 
-    while (current != NULL) {
+    // while (current != NULL) {
+    //     printf("riddle = %ld, answer = %ld\n", current->riddle, current->answer);
+    //     current = current->next;
+    // }
+
+    for (current = head; current != NULL; current = current->next){
         printf("riddle = %ld, answer = %ld\n", current->riddle, current->answer);
-        current = current->next;
     }
 }
 
@@ -68,12 +74,9 @@ unsigned long get_answer(int i){
     return val;
 }
 
-unsigned long read_from_file(FILE * file){//}, unsigned int * counter){
+unsigned long read_from_file(FILE * file){
     unsigned long riddle, answer;
 
     fscanf(file, "%lu, %lu", &riddle,&answer);
     return riddle;
-    //add_element(riddle,answer);
-
-    //(*counter)++;
 }

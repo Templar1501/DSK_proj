@@ -13,9 +13,8 @@ bool bruteforce_riddle(unsigned long riddle,  unsigned long *answer){
     tmp_answer = rand() % 1000;
     answer -= (tmp_answer % 10);
 
-    while((tmp_answer * riddle) % RIDDLE_BODY != 1 && !solution_found_by_other_thread){
+    while((tmp_answer * riddle) % RIDDLE_BODY != 1 && !solution_found_by_other_thread)
         tmp_answer += 10;
-    }
 
     if (solution_found_by_other_thread) return false;
 
