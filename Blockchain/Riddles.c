@@ -26,10 +26,22 @@ bool check_if_proper_answer(unsigned long answer){
     return answer % 10 == 0;
 }
 
-void fill_block_struct(blockchain_element * elem, unsigned long answer_by_thread, unsigned long riddle, unsigned long client_id){
+void fill_block_struct(blockchain_element * elem, unsigned long answer_by_thread, unsigned long client_id){
     elem->answer = answer_by_thread;
     elem->riddle = riddle;
     elem->client_id = client_id;
     elem->approved = false;
     elem->clients_votted = 0;
+    elem->next = NULL;
+}
+
+void vote(unsigned int client_amount){
+    blockchain_element *temp;
+
+    for(temp = head;temp!=NULL;)temp = temp->next;
+    if(check_if_proper_answer(temp->answer)) temp->clients_votted++;
+    if(temp->clients_votted == client_amount-1){
+        solution_found_by_other_thread = false;
+        temp->approved = true;
+    }
 }

@@ -1,4 +1,5 @@
 #include "Blockchain.h"
+#include "Riddles.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,14 +14,12 @@ void close_file(FILE * file){
     fclose(file);
 }
 
-void add_element(unsigned long riddle, unsigned long answer){
+void add_element(unsigned long client_id, unsigned long answer){
     blockchain_element *temp, *ptr;
 
     temp = (blockchain_element *) malloc(sizeof(blockchain_element));
 
-    temp->riddle = riddle;
-    temp->answer = answer;
-    temp->next = NULL;
+    fill_block_struct(temp, answer, client_id);
 
     if(head == NULL){
         head = temp;
@@ -55,7 +54,7 @@ void print_list() {
     // }
 
     for (current = head; current != NULL; current = current->next){
-        printf("riddle = %ld, answer = %ld\n", current->riddle, current->answer);
+        printf("riddle = %ld, answer = %ld, client_id = %ld, approved = %d\n", current->riddle, current->answer, current->client_id, current->approved);
     }
 }
 
